@@ -86,7 +86,7 @@ Otherwise, try
 
 To install the prerequisites for testing, (in your venv), do
 
-    pip install -r requirements-test.txt
+    pip install .[test]
 
 (once) and then run the tests via:
 

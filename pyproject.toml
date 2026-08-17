@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mets-mods2tei"
+version = "0.1.6"
+description = "Convert digital documents in METS/MODS format to TEI"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Kay-Michael Würzner", email = "kay-michael.wuerzner@slub-dresden.de"}
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Text Processing :: Markup :: XML",
+]
+dependencies = [
+    "click",
+    "lxml",
+    "babel",
+    "generateDS",
+    "rapidfuzz",
+    "ocrd >= 2.59",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest >= 8.0.0",
+    "pytest-order >= 1.0.0",
+    "pytest-subtests",
+    "coverage >= 7.0.0",
+]
+
+[project.scripts]
+mm2tei = "mets_mods2tei.scripts.mets_mods2tei:cli"
+mm-update = "mets_mods2tei.scripts.update:cli"
+
+[tool.setuptools.packages.find]
+exclude = ["tests*", "docs*"]
+
+[tool.setuptools.package-data]
+mets_mods2tei = ["data/tei_skeleton.xml", "data/iso15924-utf8-20180827.txt"]

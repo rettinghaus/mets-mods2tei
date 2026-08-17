@@ -1,6 +1,0 @@
-click
-lxml
-babel
-generateDS
-rapidfuzz
-ocrd >= 2.59

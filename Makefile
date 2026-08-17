@@ -31,10 +31,10 @@ install:
 	$(PIP) install .
 
 deps:
-	$(PIP) install -r requirements.txt
+	$(PIP) install .
 
 deps-test:
-	$(PIP) install -r requirements-test.txt
+	$(PIP) install .[test]
 
 # Run all unit tests
 test:
