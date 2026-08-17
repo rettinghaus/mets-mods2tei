@@ -10,7 +10,9 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
 authors = [
-    {name = "Kay-Michael Würzner", email = "kay-michael.wuerzner@slub-dresden.de"}
+    {name = "Kay-Michael Würzner", email = "kay-michael.wuerzner@slub-dresden.de"},
+    {name = "Robert Sachunsky"},
+    {name = "Klaus Rettinghaus", email = "klaus.rettinghaus@gmail.com"}
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
