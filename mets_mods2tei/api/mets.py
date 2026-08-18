@@ -75,6 +75,7 @@ class Mets:
         self.mets: Optional[Any] = None
         self.mods: Optional[Any] = None
         self.page_map: Dict[str, Any] = {}
+        self.page_index_map: Dict[str, int] = {}
         self.order_map: Dict[str, str] = {}
         self.orderlabel_map: Dict[str, str] = {}
         self.img_map: Dict[str, str] = {}
@@ -467,10 +468,11 @@ class Mets:
         # struct map physical
         page_struct = self.get_page_structure()
         if page_struct:
-            for div in page_struct.get_div():
+            for idx, div in enumerate(page_struct.get_div()):
                 page = div.get_ID()
                 self.logger.debug("Found physical page: %s", page)
                 self.page_map[page] = div
+                self.page_index_map[page] = idx
                 if div.get_ORDER():
                     self.order_map[page] = div.get_ORDER()
                 if div.get_ORDERLABEL():
