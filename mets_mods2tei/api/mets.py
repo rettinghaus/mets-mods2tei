@@ -20,6 +20,12 @@ NS = {
 METS = "{%s}" % NS['mets']
 XLINK = "{%s}" % NS['xlink']
 
+XPATH_DV_OWNER = etree.XPath("//dv:owner", namespaces=NS)
+XPATH_DV_LICENSE = etree.XPath("//dv:license", namespaces=NS)
+XPATH_FILE_GRP = etree.XPath("//mets:fileGrp[@USE=$use]", namespaces=NS)
+XPATH_METS_FILE = etree.XPath("./mets:file", namespaces=NS)
+XPATH_STRUCTLINK_CHILDREN = etree.XPath("//mets:structLink/*", namespaces=NS)
+
 
 class Iso15924:
     """A class to handle ISO 15924 script codes."""
@@ -69,6 +75,7 @@ class Mets:
         self.mets: Optional[Any] = None
         self.mods: Optional[Any] = None
         self.page_map: Dict[str, Any] = {}
+        self.page_index_map: Dict[str, int] = {}
         self.order_map: Dict[str, str] = {}
         self.orderlabel_map: Dict[str, str] = {}
         self.img_map: Dict[str, str] = {}
@@ -362,14 +369,14 @@ class Mets:
             dv = None
 
         # owner of the digital edition
-        owner = dv.xpath("//dv:owner", namespaces=NS) if dv is not None else []
+        owner = XPATH_DV_OWNER(dv) if dv is not None else []
         self.owner_digital = owner[0].text if len(owner) else ""
 
         # availability/license
         # common case
         self.license = ""
         self.license_url = ""
-        license_nodes = dv.xpath("//dv:license", namespaces=NS) if dv is not None else []
+        license_nodes = XPATH_DV_LICENSE(dv) if dv is not None else []
         if len(license_nodes):
             self.license = license_nodes[0].text
             self.license_url = ""
@@ -441,40 +448,43 @@ class Mets:
 
         # fulltext
         fulltext_map = {}
-        fulltext_group = self.tree.xpath("//mets:fileGrp[@USE='%s']" % self.fulltext_group_name, namespaces=NS)
+        fulltext_group = XPATH_FILE_GRP(self.tree, use=self.fulltext_group_name)
         if fulltext_group:
             fulltext_map = {}
-            for entry in fulltext_group[0].xpath("./mets:file", namespaces=NS):
+            for entry in XPATH_METS_FILE(fulltext_group[0]):
                 url = entry.find("./" + METS + "FLocat").get("%shref" % XLINK)
                 self.logger.debug("Found full-text file: %s", url)
                 fulltext_map[entry.get("ID")] = url
 
         # image
         image_map = {}
-        image_group = self.tree.xpath("//mets:fileGrp[@USE='%s']" % self.image_group_name, namespaces=NS)
+        image_group = XPATH_FILE_GRP(self.tree, use=self.image_group_name)
         if image_group:
-            for entry in image_group[0].xpath("./mets:file", namespaces=NS):
+            for entry in XPATH_METS_FILE(image_group[0]):
                 url = entry.find("./" + METS + "FLocat").get("%shref" % XLINK)
                 self.logger.debug("Found image file: %s", url)
                 image_map[entry.get("ID")] = url
 
         # struct map physical
-        for div in self.get_page_structure().get_div():
-            page = div.get_ID()
-            self.logger.debug("Found physical page: %s", page)
-            self.page_map[page] = div
-            if div.get_ORDER():
-                self.order_map[page] = div.get_ORDER()
-            if div.get_ORDERLABEL():
-                self.orderlabel_map[page] = div.get_ORDERLABEL()
-            for fptr in div.get_fptr():
-                if fptr.get_FILEID() in fulltext_map:
-                    self.alto_map[page] = fulltext_map[fptr.get_FILEID()]
-                elif fptr.get_FILEID() in image_map:
-                    self.img_map[page] = image_map[fptr.get_FILEID()]
+        page_struct = self.get_page_structure()
+        if page_struct:
+            for idx, div in enumerate(page_struct.get_div()):
+                page = div.get_ID()
+                self.logger.debug("Found physical page: %s", page)
+                self.page_map[page] = div
+                self.page_index_map[page] = idx
+                if div.get_ORDER():
+                    self.order_map[page] = div.get_ORDER()
+                if div.get_ORDERLABEL():
+                    self.orderlabel_map[page] = div.get_ORDERLABEL()
+                for fptr in div.get_fptr():
+                    if fptr.get_FILEID() in fulltext_map:
+                        self.alto_map[page] = fulltext_map[fptr.get_FILEID()]
+                    elif fptr.get_FILEID() in image_map:
+                        self.img_map[page] = image_map[fptr.get_FILEID()]
 
         # struct links
-        structlinks = self.tree.xpath("//mets:structLink/*", namespaces=NS)
+        structlinks = XPATH_STRUCTLINK_CHILDREN(self.tree)
         for sm_link in structlinks:
             logical = sm_link.get("%sfrom" % XLINK)
             physical = sm_link.get("%sto" % XLINK)
