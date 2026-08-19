@@ -7,7 +7,7 @@ from typing import IO
 from lxml import etree
 from rapidfuzz.distance import Levenshtein
 
-from .util import NS, PX
+from .util import NS
 
 norm_alto_ns_re = re.compile(rb'alto/ns-v.#')
 
@@ -109,8 +109,7 @@ class Alto:
         Returns:
             List[etree._Element]: A list of text block elements.
         """
-        return self.tree.findall('.//alto:TextBlock'
-                                 .replace('alto:', PX['alto']))
+        return self.tree.findall('.//alto:TextBlock', namespaces=NS)
 
     def get_lines_in_text_block(self, text_block: etree._Element) -> list[etree._Element]:
         """
@@ -122,8 +121,7 @@ class Alto:
         Returns:
             List[etree._Element]: A list of line elements.
         """
-        return text_block.findall('.//alto:TextLine'
-                                  .replace('alto:', PX['alto']))
+        return text_block.findall('.//alto:TextLine', namespaces=NS)
 
     def get_text_in_line(self, line: etree._Element) -> str:
         """
@@ -136,8 +134,7 @@ class Alto:
             str: The text content of the line.
         """
         text = ' '.join(word.get('CONTENT', '')
-                        for word in line.findall('.//alto:String'
-                                                 .replace('alto:', PX['alto'])))
+                        for word in line.findall('.//alto:String', namespaces=NS))
         hyp = line.find("alto:HYP", namespaces=NS)
         if hyp is not None:
             text += hyp.get("CONTENT")

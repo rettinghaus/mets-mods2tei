@@ -10,7 +10,7 @@ from lxml import etree
 
 from .mets_generateds import parseString as parse_mets
 from .mods_generateds import parseString as parse_mods
-from .util import PX, resource_filename
+from .util import NS, PX, resource_filename
 
 
 class Iso15924:
@@ -151,7 +151,7 @@ class Mets:
         self.tree = etree.parse(path)
         root = self.tree.getroot()
         if root.tag != PX['mets'] + 'mets':
-            root = root.find('.//' + PX['mets'] + 'mets')
+            root = root.find('.//mets:mets', namespaces=NS)
         self.mets = parse_mets(etree.tostring(root), silence=True)
         self.mods = parse_mods(self.mets.get_dmdSec()[0].get_mdWrap().get_xmlData().get_anytypeobjs_()[0], silence=True)
         self.__spur()
@@ -388,14 +388,14 @@ class Mets:
             dv = None
 
         # owner of the digital edition
-        owner = dv.find(".//dv:owner".replace('dv:', PX['dv']))
+        owner = dv.find(".//dv:owner", namespaces=NS)
         self.owner_digital = owner.text if owner is not None else ""
 
         # availability/license
         # common case
         self.license = ""
         self.license_url = ""
-        license_nodes = dv.find(".//dv:license".replace('dv:', PX['dv']))
+        license_nodes = dv.find(".//dv:license", namespaces=NS)
         if license_nodes is not None:
             self.license = license_nodes.text
             self.license_url = ""
@@ -471,20 +471,20 @@ class Mets:
 
         # fulltext
         fulltext_map = {}
-        fulltext_group = self.tree.find(f".//{PX['mets']}fileGrp[@USE='{self.fulltext_group_name}']")
+        fulltext_group = self.tree.find(f".//mets:fileGrp[@USE='{self.fulltext_group_name}']", namespaces=NS)
         if fulltext_group is not None:
             fulltext_map = {}
-            for entry in fulltext_group.findall("./mets:file".replace('mets:', PX['mets'])):
-                url = entry.find("./" + PX['mets'] + "FLocat").get(PX['xlink'] + "href")
+            for entry in fulltext_group.findall("./mets:file", namespaces=NS):
+                url = entry.find("./mets:FLocat", namespaces=NS).get(PX['xlink'] + "href")
                 self.logger.debug("Found full-text file: %s", url)
                 fulltext_map[entry.get("ID")] = url
 
         # image
         image_map = {}
-        image_group = self.tree.find(f".//{PX['mets']}fileGrp[@USE='{self.image_group_name}']")
+        image_group = self.tree.find(f".//mets:fileGrp[@USE='{self.image_group_name}']", namespaces=NS)
         if image_group is not None:
-            for entry in image_group.findall("./mets:file".replace('mets:', PX['mets'])):
-                url = entry.find("./" + PX['mets'] + "FLocat").get(PX['xlink'] + "href")
+            for entry in image_group.findall("./mets:file", namespaces=NS):
+                url = entry.find("./mets:FLocat", namespaces=NS).get(PX['xlink'] + "href")
                 self.logger.debug("Found image file: %s", url)
                 image_map[entry.get("ID")] = url
 
@@ -506,7 +506,7 @@ class Mets:
                         self.img_map[page] = image_map[fptr.get_FILEID()]
 
         # struct links
-        structlinks = self.tree.findall(".//mets:structLink/*".replace('mets:', PX['mets']))
+        structlinks = self.tree.findall(".//mets:structLink/*", namespaces=NS)
         for sm_link in structlinks:
             logical = sm_link.get(PX['xlink'] + "from")
             physical = sm_link.get(PX['xlink'] + "to")

@@ -79,8 +79,7 @@ class Tei:
         """
         # needs lxml>=4.5:
         etree.indent(self.tree, space="  ")
-        for lb in self.tree.findall('.//tei:lb'
-                                    .replace('tei:', PX['tei'])):
+        for lb in self.tree.findall('.//tei:lb', namespaces=NS):
             prefix = lb.getparent().text
             lb.tail += "  " + prefix
         return etree.tostring(self.tree, pretty_print=True, encoding="utf-8")
@@ -218,16 +217,14 @@ class Tei:
         if div is not None:
             self.logger.debug("Found logical structMap for %s", div.get_TYPE())
             self.add_div_structure(div)
-        if (self.tree.find('.//tei:text/tei:body/tei:div'
-                           .replace('tei:', PX['tei'])) is None
+        if (self.tree.find('.//tei:text/tei:body/tei:div', namespaces=NS) is None
             and any(mets.alto_map)):
             self.logger.warning("Found no logical structMap divs, falling back to physical")
             pages = mets.alto_map.keys()
             if any(mets.order_map.values()):
                 pages = sorted(pages, key=mets.get_order)
             self.add_physical_pages(map(mets.page_map.get, pages))
-        if self.tree.find('.//tei:text/tei:body/tei:div'
-                          .replace('tei:', PX['tei'])) is None:
+        if self.tree.find('.//tei:text/tei:body/tei:div', namespaces=NS) is None:
             self.logger.error("Found no logical or physical structMap div")
 
         # OCR
@@ -240,8 +237,7 @@ class Tei:
         Return the main title of the work represented
         by the TEI Header.
         """
-        main = self.tree.find('.//tei:titleStmt/tei:title[@type="main"]'
-                              .replace('tei:', PX['tei']))
+        main = self.tree.find('.//tei:titleStmt/tei:title[@type="main"]', namespaces=NS)
         assert main is not None
         return main.text
 
@@ -254,8 +250,7 @@ class Tei:
         return [
             subtitle.text
             for subtitle in self.tree.findall(
-                    './/tei:fileDesc/tei:titleStmt/tei:title[@type="sub"]'
-                    .replace('tei:', PX['tei']))
+                    './/tei:fileDesc/tei:titleStmt/tei:title[@type="sub"]', namespaces=NS)
         ]
 
     @property
@@ -265,8 +260,7 @@ class Tei:
         by the TEI Header.
         """
         authors = []
-        for author in self.tree.findall('.//tei:fileDesc/tei:titleStmt/tei:author'
-                                        .replace('tei:', PX['tei'])):
+        for author in self.tree.findall('.//tei:fileDesc/tei:titleStmt/tei:author', namespaces=NS):
             authors.append(", ".join(author.xpath('descendant-or-self::*/text()')))
         return authors
 
@@ -275,8 +269,7 @@ class Tei:
         """
         Return the level of publication ('monographic' vs. 'analytic')
         """
-        main = self.tree.find('.//tei:sourceDesc/tei:biblFull/tei:titleStmt/tei:title[@type="main"]'
-                              .replace('tei:', PX['tei']))
+        main = self.tree.find('.//tei:sourceDesc/tei:biblFull/tei:titleStmt/tei:title[@type="main"]', namespaces=NS)
         assert main is not None
         return main.get("level")
 
@@ -289,8 +282,7 @@ class Tei:
         return [
             date.text
             for date in self.tree.findall(
-                './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:publicationStmt/tei:date'
-                    .replace('tei:', PX['tei']))
+                './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:publicationStmt/tei:date', namespaces=NS)
         ]
 
     @property
@@ -302,8 +294,7 @@ class Tei:
         return [
             "{}:{}".format(place.get("corresp"), place.text)
             for place in self.tree.findall(
-                './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:publicationStmt/tei:pubPlace'
-                    .replace('tei:', PX['tei']))
+                './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:publicationStmt/tei:pubPlace', namespaces=NS)
         ]
 
     @property
@@ -315,8 +306,7 @@ class Tei:
         return [
             publisher.text
             for publisher in self.tree.findall(
-                './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:publicationStmt/tei:publisher/tei:name'
-                    .replace('tei:', PX['tei']))
+                './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:publicationStmt/tei:publisher/tei:name', namespaces=NS)
         ]
 
     @property
@@ -328,8 +318,7 @@ class Tei:
         return [
             publisher.text
             for publisher in self.tree.findall(
-                    './/tei:fileDesc/tei:publicationStmt/tei:publisher'
-                    .replace('tei:', PX['tei']))
+                    './/tei:fileDesc/tei:publicationStmt/tei:publisher', namespaces=NS)
         ]
 
     @property
@@ -338,8 +327,7 @@ class Tei:
         Return information on the availability status represented
         by the TEI Header.
         """
-        avail = self.tree.find('.//tei:fileDesc/tei:publicationStmt/tei:availability'
-                               .replace('tei:', PX['tei']))
+        avail = self.tree.find('.//tei:fileDesc/tei:publicationStmt/tei:availability', namespaces=NS)
         assert avail is not None
         return avail.get("status")
 
@@ -349,8 +337,7 @@ class Tei:
         Return information on the licencing conditions represented
         by the TEI Header.
         """
-        licence = self.tree.find('.//tei:fileDesc/tei:publicationStmt/tei:availability/tei:licence'
-                                 .replace('tei:', PX['tei']))
+        licence = self.tree.find('.//tei:fileDesc/tei:publicationStmt/tei:availability/tei:licence', namespaces=NS)
         if licence is not None:
             return licence.text
         else:
@@ -365,8 +352,7 @@ class Tei:
         return [
             source_edition.text
             for source_edition in self.tree.findall(
-                './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:editionStmt/tei:edition'
-                    .replace('tei:', PX['tei']))
+                './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:editionStmt/tei:edition', namespaces=NS)
         ]
 
     @property
@@ -378,8 +364,7 @@ class Tei:
         return [
             digital_edition.text
             for digital_edition in self.tree.findall(
-                    './/tei:fileDesc/tei:editionStmt/tei:edition'
-                    .replace('tei:', PX['tei']))
+                    './/tei:fileDesc/tei:editionStmt/tei:edition', namespaces=NS)
         ]
 
     @property
@@ -391,8 +376,7 @@ class Tei:
         return [
             "{}:{}".format(encoding_date.get("type"), encoding_date.text)
             for encoding_date in self.tree.findall(
-                    './/tei:fileDesc/tei:publicationStmt/tei:date'
-                    .replace('tei:', PX['tei']))
+                    './/tei:fileDesc/tei:publicationStmt/tei:date', namespaces=NS)
         ]
 
     @property
@@ -401,8 +385,7 @@ class Tei:
         Return information on the manners of creation of the digitalized work represented
         by the TEI Header.
         """
-        desc = self.tree.find('.//tei:encodingDesc'
-                              .replace('tei:', PX['tei']))
+        desc = self.tree.find('.//tei:encodingDesc', namespaces=NS)
         assert desc is not None
         return "".join(desc.itertext()).strip()
 
@@ -415,8 +398,7 @@ class Tei:
         return [
             repository.text
             for repository in self.tree.findall(
-                    './/tei:msDesc/tei:msIdentifier/tei:repository'
-                    .replace('tei:', PX['tei']))
+                    './/tei:msDesc/tei:msIdentifier/tei:repository', namespaces=NS)
         ]
 
     @property
@@ -427,8 +409,7 @@ class Tei:
         return [
             shelfmark.text
             for shelfmark in self.tree.findall(
-                './/tei:msDesc/tei:msIdentifier/tei:idno/tei:idno[@type="shelfmark"]'
-                    .replace('tei:', PX['tei']))
+                './/tei:msDesc/tei:msIdentifier/tei:idno/tei:idno[@type="shelfmark"]', namespaces=NS)
         ]
 
     @property
@@ -437,8 +418,7 @@ class Tei:
         Return information on the TEI-Header-represented work's PURL.
         """
         purl = self.tree.find(
-            './/tei:msDesc/tei:msIdentifier/tei:idno/tei:idno[@type="PURL"]'
-            .replace('tei:', PX['tei']))
+            './/tei:msDesc/tei:msIdentifier/tei:idno/tei:idno[@type="PURL"]', namespaces=NS)
         if purl is not None:
             return purl.text
         else:
@@ -450,8 +430,7 @@ class Tei:
         Return information on the TEI-Header-represented work's URN.
         """
         urn = self.tree.find(
-            './/tei:msDesc/tei:msIdentifier/tei:idno/tei:idno[@type="URN"]'
-            .replace('tei:', PX['tei']))
+            './/tei:msDesc/tei:msIdentifier/tei:idno/tei:idno[@type="URN"]', namespaces=NS)
         if urn is not None:
             return urn.text
         else:
@@ -463,8 +442,7 @@ class Tei:
         Return information on the TEI-Header-represented work's VD ID.
         """
         vd_id = self.tree.find(
-            './/tei:msDesc/tei:msIdentifier/tei:idno/tei:idno[@type="VD"]'
-            .replace('tei:', PX['tei']))
+            './/tei:msDesc/tei:msIdentifier/tei:idno/tei:idno[@type="VD"]', namespaces=NS)
         if vd_id is not None:
             return vd_id.text
         else:
@@ -479,8 +457,7 @@ class Tei:
         return [
             extent.text
             for extent in self.tree.findall(
-                './/tei:msDesc/tei:physDesc/tei:objectDesc/tei:supportDesc/tei:extent'
-                    .replace('tei:', PX['tei']))
+                './/tei:msDesc/tei:physDesc/tei:objectDesc/tei:supportDesc/tei:extent', namespaces=NS)
         ]
 
     @property
@@ -492,8 +469,7 @@ class Tei:
         return [
             collection.text
             for collection in self.tree.findall(
-                    './/tei:msDesc/tei:msIdentifier/tei:collection'
-                    .replace('tei:', PX['tei']))
+                    './/tei:msDesc/tei:msIdentifier/tei:collection', namespaces=NS)
         ]
 
     @property
@@ -503,26 +479,22 @@ class Tei:
         by the TEI Header.
         """
         return self.tree.find(
-            ".//tei:fileDesc/tei:sourceDesc/tei:bibl"
-            .replace('tei:', PX['tei']))
+            ".//tei:fileDesc/tei:sourceDesc/tei:bibl", namespaces=NS)
 
     def set_main_title(self, string):
         """
         Set the main title of the tei:titleStmt.
         """
-        title_stmt = self.tree.find('.//tei:titleStmt'
-                                    .replace('tei:', PX['tei']))
+        title_stmt = self.tree.find('.//tei:titleStmt', namespaces=NS)
         assert title_stmt is not None
-        for node in title_stmt.findall('.//tei:title[@type="main"]'
-                                       .replace('tei:', PX['tei'])):
+        for node in title_stmt.findall('.//tei:title[@type="main"]', namespaces=NS):
             node.text = string
 
     def add_sub_title(self, string):
         """
         Add a sub-title of the tei:titleStmt.
         """
-        title_stmt = self.tree.find('.//tei:titleStmt'
-                                    .replace('tei:', PX['tei']))
+        title_stmt = self.tree.find('.//tei:titleStmt', namespaces=NS)
         assert title_stmt is not None
         node = etree.Element(PX['tei'] + "title")
         node.set("type", "sub")
@@ -533,8 +505,7 @@ class Tei:
         """
         Add a part title of the tei:titleStmt.
         """
-        title_stmt = self.tree.find('.//tei:titleStmt'
-                                    .replace('tei:', PX['tei']))
+        title_stmt = self.tree.find('.//tei:titleStmt', namespaces=NS)
         assert title_stmt is not None
         node = etree.Element(PX['tei'] + "title")
         node.set("type", "part")
@@ -546,8 +517,7 @@ class Tei:
         """
         Add a volume title of the tei:titleStmt.
         """
-        title_stmt = self.tree.find('.//tei:titleStmt'
-                                    .replace('tei:', PX['tei']))
+        title_stmt = self.tree.find('.//tei:titleStmt', namespaces=NS)
         assert title_stmt is not None
         node = etree.Element(PX['tei'] + "title")
         node.set("type", typ)
@@ -559,11 +529,9 @@ class Tei:
         """
         Set the main, sub, and part/volume titles of the tei:biblFull by copying from tei:titleStmt.
         """
-        title_stmt = self.tree.find('.//tei:titleStmt'
-                                    .replace('tei:', PX['tei']))
+        title_stmt = self.tree.find('.//tei:titleStmt', namespaces=NS)
         assert title_stmt is not None
-        bibl = self.tree.find('.//tei:sourceDesc/tei:biblFull'
-                              .replace('tei:', PX['tei']))
+        bibl = self.tree.find('.//tei:sourceDesc/tei:biblFull', namespaces=NS)
         assert bibl is not None
         bibl.append(copy.deepcopy(title_stmt))
 
@@ -584,8 +552,7 @@ class Tei:
         """
         assert level in ['m', 'a', 'j', 's', 'u']
         for title in self.tree.findall(
-                './/tei:sourceDesc/tei:biblFull/tei:titleStmt/tei:title'
-                .replace('tei:', PX['tei'])):
+                './/tei:sourceDesc/tei:biblFull/tei:titleStmt/tei:title', namespaces=NS):
             title.set("level", level)
 
     def add_author(self, person, typ):
@@ -610,19 +577,16 @@ class Tei:
         elif typ == "corporate":
             org_name = etree.SubElement(author, PX['tei'] + "orgName")
             org_name.text = " ".join(person[key] for key in person)
-        for title_stmt in self.tree.findall('.//tei:titleStmt'
-                                            .replace('tei:', PX['tei'])):
+        for title_stmt in self.tree.findall('.//tei:titleStmt', namespaces=NS):
             title_stmt.append(copy.deepcopy(author))
 
     def add_note(self, note):
         """
         Add a note with details about the document.
         """
-        fileDesc = self.tree.find('.//tei:fileDesc'
-                                  .replace('tei:', PX['tei']))
+        fileDesc = self.tree.find('.//tei:fileDesc', namespaces=NS)
         assert fileDesc is not None
-        if (notes := fileDesc.find('./tei:notesStmt'
-                                   .replace('tei:', PX['tei']))) is None:
+        if (notes := fileDesc.find('./tei:notesStmt', namespaces=NS)) is None:
             notes = etree.SubElement(fileDesc, PX['tei'] + "notesStmt")
         node = etree.SubElement(notes, PX['tei'] + "note")
         node.text = note
@@ -633,8 +597,7 @@ class Tei:
         Add a publication place to the publication statement.
         """
         publication_stmt = self.tree.find(
-            './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:publicationStmt'
-            .replace('tei:', PX['tei']))
+            './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:publicationStmt', namespaces=NS)
         assert publication_stmt is not None
         pub_place = etree.SubElement(publication_stmt, PX['tei'] + "pubPlace")
         for key in place:
@@ -648,8 +611,7 @@ class Tei:
         Add a publication date to the publication statement.
         """
         publication_stmt = self.tree.find(
-            './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:publicationStmt'
-            .replace('tei:', PX['tei']))
+            './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:publicationStmt', namespaces=NS)
         assert publication_stmt is not None
         for key in date:
             pub_date = etree.SubElement(publication_stmt, PX['tei'] + "date")
@@ -663,8 +625,7 @@ class Tei:
         Adds a publisher to the publication statement.
         """
         publication_stmt = self.tree.find(
-            './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:publicationStmt'
-            .replace('tei:', PX['tei']))
+            './/tei:fileDesc/tei:sourceDesc/tei:biblFull/tei:publicationStmt', namespaces=NS)
         assert publication_stmt is not None
         publisher_node = etree.Element(PX['tei'] + "publisher")
         name = etree.SubElement(publisher_node, PX['tei'] + "name")
@@ -675,8 +636,7 @@ class Tei:
         """
         Add an edition statement with details on the source manuscript.
         """
-        bibl_full = self.tree.find('.//tei:fileDesc/tei:sourceDesc/tei:biblFull'
-                                   .replace('tei:', PX['tei']))
+        bibl_full = self.tree.find('.//tei:fileDesc/tei:sourceDesc/tei:biblFull', namespaces=NS)
         assert bibl_full is not None
         edition_stmt = etree.SubElement(bibl_full, PX['tei'] + "editionStmt")
         edition = etree.SubElement(edition_stmt, PX['tei'] + "edition")
@@ -686,8 +646,7 @@ class Tei:
         """
         Add an edition statement with details on the digital edition.
         """
-        file_desc = self.tree.find('.//tei:fileDesc'
-                                   .replace('tei:', PX['tei']))
+        file_desc = self.tree.find('.//tei:fileDesc', namespaces=NS)
         assert file_desc is not None
         edition_stmt = etree.SubElement(file_desc, PX['tei'] + "editionStmt")
         edition = etree.SubElement(edition_stmt, PX['tei'] + "edition")
@@ -697,8 +656,7 @@ class Tei:
         """
         Add a publisher of the digital edition.
         """
-        publication_stmt = self.tree.find('.//tei:publicationStmt'
-                                          .replace('tei:', PX['tei']))
+        publication_stmt = self.tree.find('.//tei:publicationStmt', namespaces=NS)
         assert publication_stmt is not None
         publisher = etree.SubElement(publication_stmt, PX['tei'] + "publisher")
         publisher.text = hoster
@@ -707,11 +665,9 @@ class Tei:
         """
         Set the availability conditions of the digital edition.
         """
-        publication_stmt = self.tree.find('.//tei:publicationStmt'
-                                          .replace('tei:', PX['tei']))
+        publication_stmt = self.tree.find('.//tei:publicationStmt', namespaces=NS)
         assert publication_stmt is not None
-        availability = publication_stmt.find('.//tei:availability'
-                                             .replace('tei:', PX['tei']))
+        availability = publication_stmt.find('.//tei:availability', namespaces=NS)
         if availability is not None:
             availability.clear()
         else:
@@ -739,8 +695,7 @@ class Tei:
         """
         Add the date of encoding for the digital edition.
         """
-        publication_stmt = self.tree.find('.//tei:publicationStmt'
-                                          .replace('tei:', PX['tei']))
+        publication_stmt = self.tree.find('.//tei:publicationStmt', namespaces=NS)
         assert publication_stmt is not None
         encoding_date = etree.SubElement(publication_stmt, PX['tei'] + "date")
         encoding_date.set("type", "publication")
@@ -751,8 +706,7 @@ class Tei:
         """
         Set some details on the encoding of the digital edition.
         """
-        encoding_desc = self.tree.find('.//tei:encodingDesc'
-                                       .replace('tei:', PX['tei']))
+        encoding_desc = self.tree.find('.//tei:encodingDesc', namespaces=NS)
         assert encoding_desc is not None
         if creator:
             encoding_desc_details = etree.SubElement(encoding_desc, PX['tei'] + "p")
@@ -762,8 +716,7 @@ class Tei:
         """
         Add the repository of the (original) manuscript.
         """
-        ms_ident = self.tree.find('.//tei:msDesc/tei:msIdentifier'
-                                  .replace('tei:', PX['tei']))
+        ms_ident = self.tree.find('.//tei:msDesc/tei:msIdentifier', namespaces=NS)
         assert ms_ident is not None
         repository = etree.SubElement(ms_ident, PX['tei'] + "repository")
         repository.text = name
@@ -772,8 +725,7 @@ class Tei:
         """
         Add the URN, PURL, VD ID, shelfmark etc. of the digital edition.
         """
-        ms_ident = self.tree.find('.//tei:msDesc/tei:msIdentifier/tei:idno'
-                                  .replace('tei:', PX['tei']))
+        ms_ident = self.tree.find('.//tei:msDesc/tei:msIdentifier/tei:idno', namespaces=NS)
         assert ms_ident is not None
         # FIXME: URN, DTAID, ... should go to /tei:fileDesc/tei:publicationStmt/tei:idno instead
         idno = etree.SubElement(ms_ident, PX['tei'] + "idno")
@@ -784,8 +736,7 @@ class Tei:
         """
         Set the type description.
         """
-        phys_desc = self.tree.find('.//tei:msDesc/tei:physDesc'
-                                   .replace('tei:', PX['tei']))
+        phys_desc = self.tree.find('.//tei:msDesc/tei:physDesc', namespaces=NS)
         assert phys_desc is not None
         type_desc = etree.SubElement(phys_desc, PX['tei'] + "typeDesc")
         for line in description.split('\n'):
@@ -796,11 +747,9 @@ class Tei:
         """
         Add a document classification code.
         """
-        profile_desc = self.tree.find('.//tei:profileDesc'
-                                      .replace('tei:', PX['tei']))
+        profile_desc = self.tree.find('.//tei:profileDesc', namespaces=NS)
         assert profile_desc is not None
-        if (textclass := profile_desc.find('./tei:textClass'
-                                           .replace('tei:', PX['tei']))) is None:
+        if (textclass := profile_desc.find('./tei:textClass', namespaces=NS)) is None:
             textclass = etree.SubElement(profile_desc, PX['tei'] + "textClass")
         classcode = etree.SubElement(textclass, PX['tei'] + "classCode")
         classcode.set("scheme", scheme)
@@ -810,11 +759,9 @@ class Tei:
         """
         Add a document classification list of terms.
         """
-        profile_desc = self.tree.find('.//tei:profileDesc'
-                                      .replace('tei:', PX['tei']))
+        profile_desc = self.tree.find('.//tei:profileDesc', namespaces=NS)
         assert profile_desc is not None
-        if (textclass := profile_desc.find('./tei:textClass'
-                                           .replace('tei:', PX['tei']))) is None:
+        if (textclass := profile_desc.find('./tei:textClass', namespaces=NS)) is None:
             textclass = etree.SubElement(profile_desc, PX['tei'] + "textClass")
         keywords = etree.SubElement(textclass, PX['tei'] + "keywords")
         keywords.set("scheme", scheme)
@@ -828,8 +775,7 @@ class Tei:
         """
         Add a language of the source document.
         """
-        lang_usage = self.tree.find('.//tei:profileDesc/tei:langUsage'
-                                    .replace('tei:', PX['tei']))
+        lang_usage = self.tree.find('.//tei:profileDesc/tei:langUsage', namespaces=NS)
         assert lang_usage is not None
         lang = etree.SubElement(lang_usage, PX['tei'] + "language")
         lang.set("ident", language[0])
@@ -839,11 +785,9 @@ class Tei:
         """
         Add information on the extent of the source document.
         """
-        phys_desc = self.tree.find('.//tei:msDesc/tei:physDesc'
-                                   .replace('tei:', PX['tei']))
+        phys_desc = self.tree.find('.//tei:msDesc/tei:physDesc', namespaces=NS)
         assert phys_desc is not None
-        if (support_desc := phys_desc.find('./tei:objectDesc/tei:supportDesc'
-                                           .replace('tei:', PX['tei']))) is None:
+        if (support_desc := phys_desc.find('./tei:objectDesc/tei:supportDesc', namespaces=NS)) is None:
             obj_desc = etree.SubElement(phys_desc, PX['tei'] + "objectDesc")
             support_desc = etree.SubElement(obj_desc, PX['tei'] + "supportDesc")
         extent_elem = etree.SubElement(support_desc, PX['tei'] + "extent")
@@ -853,8 +797,7 @@ class Tei:
         """
         Add a (free-text) collection of the digital document.
         """
-        profile_desc = self.tree.find('.//tei:msDesc/tei:msIdentifier'
-                                      .replace('tei:', PX['tei']))
+        profile_desc = self.tree.find('.//tei:msDesc/tei:msIdentifier', namespaces=NS)
         assert profile_desc is not None
         coll = etree.SubElement(profile_desc, PX['tei'] + "collection")
         coll.text = collection
@@ -886,9 +829,9 @@ class Tei:
         Add OCR text from FULLTEXT file group to the single divs
         """
         # the text-holding elements
-        front = self.tree.find('.//tei:front'.replace('tei:', PX['tei']))
-        body = self.tree.find('.//tei:body'.replace('tei:', PX['tei']))
-        back = self.tree.find('.//tei:back'.replace('tei:', PX['tei']))
+        front = self.tree.find('.//tei:front', namespaces=NS)
+        body = self.tree.find('.//tei:body', namespaces=NS)
+        back = self.tree.find('.//tei:back', namespaces=NS)
 
         if front is not None:
             for node in front.iterchildren():
@@ -1001,7 +944,7 @@ class Tei:
                     pagenum = list(mets.page_map.keys()).index(struct_link)
                 except ValueError:
                     self.logger.warning("cannot determine image number for link '%s'", struct_link)
-                    pagenum = len(node.xpath("tei:pb", namespaces=NS))
+                    pagenum = len(node.findall("./tei:pb", namespaces=NS))
                 pageid = f"f{pagenum + 1:04d}"
                 pb.set("facs", "#" + pageid)
                 orderlabel = mets.get_orderlabel(struct_link) or mets.get_order(struct_link)
@@ -1012,8 +955,7 @@ class Tei:
                         pb.set("corresp", self.purl + "/" + pageid[1:])
                     img_url = mets.get_img(struct_link)
                     if img_url:
-                        facsimile = self.tree.find('.//tei:facsimile'
-                                                   .replace('tei:', PX['tei']))
+                        facsimile = self.tree.find('.//tei:facsimile', namespaces=NS)
                         assert facsimile is not None
                         # facsimile.set("base", ...common url_prefix...)
                         # todo: DTABf seems to use "graphic" directly, but other dialects wrap them inside a "surface"
@@ -1087,9 +1029,9 @@ class Tei:
         """
 
         # div structure has to be added to text
-        front = self.tree.find('.//tei:front'.replace('tei:', PX['tei']))
-        body = self.tree.find('.//tei:body'.replace('tei:', PX['tei']))
-        back = self.tree.find('.//tei:back'.replace('tei:', PX['tei']))
+        front = self.tree.find('.//tei:front', namespaces=NS)
+        body = self.tree.find('.//tei:body', namespaces=NS)
+        back = self.tree.find('.//tei:back', namespaces=NS)
 
         assert body is not None
         # descend to the deepest AMD
@@ -1175,7 +1117,7 @@ class Tei:
         """
 
         # div structure has to be added to text
-        body = self.tree.find('.//tei:body'.replace('tei:', PX['tei']))
+        body = self.tree.find('.//tei:body', namespaces=NS)
         assert body is not None
 
         for page in pages:
