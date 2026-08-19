@@ -33,7 +33,7 @@ def test_reading_local_file(datadir):
     """
     Test reading a local ALTO file.
     """
-    with open(datadir.join('test_alto.xml'), 'rb') as f:
+    with (datadir / 'test_alto.xml').open('rb') as f:
         alto = Alto.read(f)
     assert(alto.tree is not None)
 
@@ -41,7 +41,7 @@ def test_loading_local_file(datadir):
     """
     Test loading a local ALTO file.
     """
-    with open(datadir.join('test_alto.xml'), 'rb') as f:
+    with (datadir / 'test_alto.xml').open('rb') as f:
         alto = Alto.read(f)
     assert(alto.tree is not None)
 
@@ -49,7 +49,7 @@ def test_text_block_extraction(datadir):
     """
     Test the extraction of text blocks.
     """
-    with open(datadir.join('test_alto.xml'), 'rb') as f:
+    with (datadir / 'test_alto.xml').open('rb') as f:
         alto = Alto.read(f)
     assert(len(list(alto.get_text_blocks())) == 1)
 
@@ -57,7 +57,7 @@ def test_text_line_extraction(datadir):
     """
     Test the extraction of text lines.
     """
-    with open(datadir.join('test_alto.xml'), 'rb') as f:
+    with (datadir / 'test_alto.xml').open('rb') as f:
         alto = Alto.read(f)
     text_block = list(alto.get_text_blocks())[0]
     assert(len(list(alto.get_lines_in_text_block(text_block))) == 26)
@@ -66,7 +66,7 @@ def test_text_line_text_extraction(datadir):
     """
     Test the extraction of text from text lines.
     """
-    with open(datadir.join('test_alto.xml'), 'rb') as f:
+    with (datadir / 'test_alto.xml').open('rb') as f:
         alto = Alto.read(f)
     text_block = list(alto.get_text_blocks())[0]
     text_line = list(alto.get_lines_in_text_block(text_block))[0]
@@ -76,7 +76,7 @@ def test_index_assingment(datadir):
     """
     Test the identification of the most likely insertion index.
     """
-    with open(datadir.join('test_alto.xml'), 'rb') as f:
+    with (datadir / 'test_alto.xml').open('rb') as f:
         alto = Alto.read(f)
         assert(alto.get_best_insert_index("Vorbericht") == (0,0))
 
@@ -84,7 +84,7 @@ def test_read_path_str(datadir):
     """
     Test Alto.read with file path as a string.
     """
-    filepath = str(datadir.join('test_alto.xml'))
+    filepath = str(datadir / 'test_alto.xml')
     alto = Alto.read(filepath)
     assert alto.tree is not None
 
@@ -92,7 +92,7 @@ def test_write_and_frombytes(datadir):
     """
     Test Alto.write and Alto.frombytes.
     """
-    filepath = str(datadir.join('test_alto.xml'))
+    filepath = str(datadir / 'test_alto.xml')
     from lxml import etree
     tree = etree.parse(filepath)
     alto = Alto()

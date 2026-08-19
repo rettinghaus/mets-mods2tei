@@ -33,7 +33,7 @@ def test_reading_local_file(datadir):
     """
     Test reading a local METS file.
     """
-    f = open(datadir.join('test_mets.xml'))
+    f = (datadir / 'test_mets.xml').open('rb')
     mets = Mets.read(f)
     assert mets.mets is not None
 
@@ -41,7 +41,7 @@ def test_loading_local_file(datadir):
     """
     Test loading a local METS file.
     """
-    f = open(datadir.join('test_mets.xml'))
+    f = (datadir / 'test_mets.xml').open('rb')
     mets = Mets.from_file(f)
     assert mets.mets is not None
 
@@ -49,7 +49,7 @@ def test_intermediate_file_loading(datadir):
     """
     Test loading a local METS file.
     """
-    f = open(datadir.join('test_mets.xml'))
+    f = (datadir / 'test_mets.xml').open('rb')
     mets = Mets()
     mets.fromfile(f)
     assert mets.mets is not None
@@ -58,7 +58,7 @@ def test_fulltext_group_name(subtests, datadir):
     """
     Test getting and setting the full text group name.
     """
-    f = open(datadir.join('test_mets.xml'))
+    f = (datadir / 'test_mets.xml').open('rb')
     mets = Mets.read(f)
 
     with subtests.test("Check getter"):
@@ -72,7 +72,7 @@ def test_mappings(subtests, datadir):
     """
     Test the correct interpretation of the structural linking.
     """
-    f = open(datadir.join('test_mets.xml'))
+    f = (datadir / 'test_mets.xml').open('rb')
     mets = Mets.read(f)
 
     with subtests.test("Check struct links"):
@@ -88,7 +88,7 @@ def test_data_assignment(subtests, datadir):
     """
     Test the correct assignment of metadata.
     """
-    f = open(datadir.join('test_mets.xml'))
+    f = (datadir / 'test_mets.xml').open('rb')
     mets = Mets.read(f)
 
     with subtests.test("Check main title"):
@@ -142,7 +142,7 @@ def test_mappings_only_phys(subtests, datadir):
     """
     Test the correct interpretation of the structural linking.
     """
-    f = open(datadir.join('test_mets_nodiv.xml'))
+    f = (datadir / 'test_mets_nodiv.xml').open('rb')
     mets = Mets()
     mets.image_group_name = 'ORIGINAL'
     mets.fromfile(f)
@@ -161,7 +161,7 @@ def test_mappings_only_phys_local(subtests, datadir):
     """
     Test the correct interpretation of local file references.
     """
-    f = open(datadir.join('test_mets_nodiv_local.xml'))
+    f = (datadir / 'test_mets_nodiv_local.xml').open('rb')
     mets = Mets()
     mets.image_group_name = 'ORIGINAL'
     mets.fromfile(f)
@@ -173,7 +173,7 @@ def test_mets_read_variants(datadir):
     """
     Test Mets.read with string path, existing vs non-existing file.
     """
-    filepath = str(datadir.join('test_mets.xml'))
+    filepath = str(datadir / 'test_mets.xml')
     m1 = Mets.read(filepath)
     assert m1.mets is not None
 
