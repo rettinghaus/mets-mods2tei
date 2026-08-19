@@ -35,7 +35,7 @@ def test_reading_local_file(subtests, datadir, monkeypatch):
     """
     Test reading from a local METS file.
     """
-    f = open(datadir.join('test_mets.xml'))
+    f = (datadir / 'test_mets.xml').open('rb')
     mets = Mets.read(f)
     tei = Tei()
 
@@ -69,7 +69,7 @@ def test_reading_local_file_local_ocr(subtests, datadir):
     """
     Test reading from a local METS file, referencing local ALTO files.
     """
-    f = open(datadir.join('test_mets_nodiv_local.xml'))
+    f = (datadir / 'test_mets_nodiv_local.xml').open('rb')
     mets = Mets.read(f)
     tei = Tei()
     with subtests.test("Check TEI conversion"):
