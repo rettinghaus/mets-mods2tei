@@ -20,7 +20,7 @@ XML_PARSER = etree.XMLParser(remove_blank_text=True)
 XPATH_TEXTBLOCK = etree.XPath('//alto:TextBlock', namespaces=NS)
 XPATH_TEXTLINE = etree.XPath('.//alto:TextLine', namespaces=NS)
 XPATH_STRING_CONTENT = etree.XPath('.//alto:String/@CONTENT', namespaces=NS)
-XPATH_HYP = etree.XPath('alto:HYP', namespaces=NS)
+HYP_TAG = ALTO + 'HYP'
 TRANS_TABLE = str.maketrans('', '', '. ')
 
 
@@ -144,9 +144,8 @@ class Alto:
             str: The text content of the line.
         """
         text = ' '.join(XPATH_STRING_CONTENT(line))
-        hyp = XPATH_HYP(line)
-        if hyp:
-            hyp_content = hyp[0].get("CONTENT")
+        if len(line) and line[-1].tag == HYP_TAG:
+            hyp_content = line[-1].get("CONTENT")
             if hyp_content:
                 text += hyp_content
         return text
