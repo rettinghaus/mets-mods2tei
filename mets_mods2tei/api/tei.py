@@ -89,24 +89,16 @@ class Tei:
             self.tree = etree.parse(skeleton)
         self.alto_map = {}
 
-        # Cache key skeleton node references for O(1) direct access
+        # Cache frequently accessed skeleton node references
         self.title_stmt = XPATH_TITLE_STMT(self.tree)[0]
-        self.file_desc = XPATH_FILE_DESC(self.tree)[0]
         self.publication_stmt = XPATH_PUB_STMT(self.tree)[0]
-        self.source_desc = XPATH_SOURCE_DESC(self.tree)[0]
         self.bibl_full = XPATH_BIBL_FULL(self.tree)[0]
-        self.ms_ident = XPATH_MS_IDENT(self.tree)[0]
-        self.phys_desc = XPATH_PHYS_DESC(self.tree)[0]
-        self.profile_desc = XPATH_PROFILE_DESC(self.tree)[0]
-        self.facsimile_node = XPATH_FACSIMILE(self.tree)[0]
         front_res = XPATH_FRONT(self.tree)
         self.front_node = front_res[0] if front_res else None
         body_res = XPATH_BODY(self.tree)
         self.body_node = body_res[0] if body_res else None
         back_res = XPATH_BACK(self.tree)
         self.back_node = back_res[0] if back_res else None
-        bibl_res = XPATH_BIBL(self.tree)
-        self._bibl = bibl_res[0] if bibl_res else None
 
         # logging
         self.logger = logging.getLogger(__name__)
@@ -459,7 +451,7 @@ class Tei:
         Return the short citation of the work represented
         by the TEI Header.
         """
-        return self._bibl
+        return XPATH_BIBL(self.tree)[0]
 
     def set_main_title(self, string):
         """
@@ -552,7 +544,7 @@ class Tei:
         """
         Add a note with details about the document.
         """
-        fileDesc = self.file_desc
+        fileDesc = XPATH_FILE_DESC(self.tree)[0]
         notes_list = fileDesc.xpath('tei:notesStmt', namespaces=NS)
         if not notes_list:
             notes = etree.SubElement(fileDesc, "%snotesStmt" % TEI)
@@ -614,7 +606,8 @@ class Tei:
         """
         Add an edition statement with details on the digital edition.
         """
-        edition_stmt = etree.SubElement(self.file_desc, "%seditionStmt" % TEI)
+        file_desc = XPATH_FILE_DESC(self.tree)[0]
+        edition_stmt = etree.SubElement(file_desc, "%seditionStmt" % TEI)
         edition = etree.SubElement(edition_stmt, "%sedition" % TEI)
         edition.text = digital_edition
 
@@ -667,9 +660,7 @@ class Tei:
         """
         Set some details on the encoding of the digital edition
         """
-        encoding_desc = self.file_desc.find('tei:encodingDesc', namespaces=NS)
-        if encoding_desc is None:
-            encoding_desc = self.tree.xpath('//tei:encodingDesc', namespaces=NS)[0]
+        encoding_desc = self.tree.xpath('//tei:encodingDesc', namespaces=NS)[0]
         if creator:
             encoding_desc_details = etree.SubElement(encoding_desc, "%sp" % TEI)
             encoding_desc_details.text = "Encoded with the help of %s." % creator
@@ -678,16 +669,17 @@ class Tei:
         """
         Add the repository of the (original) manuscript
         """
-        repository = etree.SubElement(self.ms_ident, "%srepository" % TEI)
+        ms_ident = XPATH_MS_IDENT(self.tree)[0]
+        repository = etree.SubElement(ms_ident, "%srepository" % TEI)
         repository.text = name
 
     def add_identifier(self, type_, value):
         """
         Add the URN, PURL, VD ID, shelfmark etc. of the digital edition
         """
-        idno_node = self.ms_ident.find('tei:idno', namespaces=NS)
-        target = idno_node if idno_node is not None else self.ms_ident
-        idno = etree.SubElement(target, "%sidno" % TEI)
+        ms_ident = self.tree.xpath('//tei:msDesc/tei:msIdentifier/tei:idno', namespaces=NS)[0]
+        # FIXME: URN, DTAID, ... should go to /tei:fileDesc/tei:publicationStmt/tei:idno instead
+        idno = etree.SubElement(ms_ident, "%sidno" % TEI)
         idno.set("type", type_)
         idno.text = value
 
@@ -695,7 +687,8 @@ class Tei:
         """
         Set the type description
         """
-        type_desc = etree.SubElement(self.phys_desc, "%stypeDesc" % TEI)
+        phys_desc = XPATH_PHYS_DESC(self.tree)[0]
+        type_desc = etree.SubElement(phys_desc, "%stypeDesc" % TEI)
         for line in description.split('\n'):
             par = etree.SubElement(type_desc, "%sp" % TEI)
             par.text = line
@@ -704,11 +697,11 @@ class Tei:
         """
         Add a document classification code.
         """
-        textclass_list = self.profile_desc.xpath('tei:textClass', namespaces=NS)
-        if not textclass_list:
-            textclass = etree.SubElement(self.profile_desc, "%stextClass" % TEI)
+        profile_desc = XPATH_PROFILE_DESC(self.tree)[0]
+        if not profile_desc.xpath('/tei:textClass', namespaces=NS):
+            textclass = etree.SubElement(profile_desc, "%stextClass" % TEI)
         else:
-            textclass = textclass_list[0]
+            textclass = profile_desc.xpath('/tei:textClass', namespaces=NS)[0]
         classcode = etree.SubElement(textclass, "%sclassCode" % TEI)
         classcode.set("scheme", scheme)
         classcode.text = code
@@ -717,11 +710,11 @@ class Tei:
         """
         Add a document classification list of terms.
         """
-        textclass_list = self.profile_desc.xpath('tei:textClass', namespaces=NS)
-        if not textclass_list:
-            textclass = etree.SubElement(self.profile_desc, "%stextClass" % TEI)
+        profile_desc = XPATH_PROFILE_DESC(self.tree)[0]
+        if not profile_desc.xpath('/tei:textClass', namespaces=NS):
+            textclass = etree.SubElement(profile_desc, "%stextClass" % TEI)
         else:
-            textclass = textclass_list[0]
+            textclass = profile_desc.xpath('/tei:textClass', namespaces=NS)[0]
         keywords = etree.SubElement(textclass, "%skeywords" % TEI)
         keywords.set("scheme", scheme)
         for type_, term in terms:
@@ -734,9 +727,7 @@ class Tei:
         """
         Add a language of the source document
         """
-        lang_usage = self.profile_desc.find('tei:langUsage', namespaces=NS)
-        if lang_usage is None:
-            lang_usage = self.profile_desc
+        lang_usage = self.tree.xpath('//tei:profileDesc/tei:langUsage', namespaces=NS)[0]
         lang = etree.SubElement(lang_usage, "%slanguage" % TEI)
         lang.set("ident", language[0])
         lang.text = language[1]
@@ -745,20 +736,21 @@ class Tei:
         """
         Add information on the extent of the source document
         """
-        support_desc = self.phys_desc.xpath('tei:objectDesc/tei:supportDesc', namespaces=NS)
-        if not support_desc:
-            obj_desc = etree.SubElement(self.phys_desc, "%sobjectDesc" % TEI)
-            support_desc_elem = etree.SubElement(obj_desc, "%ssupportDesc" % TEI)
+        phys_desc = XPATH_PHYS_DESC(self.tree)[0]
+        if not phys_desc.xpath('/tei:objectDesc/tei:supportDesc', namespaces=NS):
+            obj_desc = etree.SubElement(phys_desc, "%sobjectDesc" % TEI)
+            support_desc = etree.SubElement(obj_desc, "%ssupportDesc" % TEI)
         else:
-            support_desc_elem = support_desc[0]
-        extent_elem = etree.SubElement(support_desc_elem, "%sextent" % TEI)
+            support_desc = phys_desc.xpath('/tei:objectDesc/tei:supportDesc', namespaces=NS)[0]
+        extent_elem = etree.SubElement(support_desc, "%sextent" % TEI)
         extent_elem.text = extent
 
     def add_collection(self, collection):
         """
         Add a (free-text) collection of the digital document
         """
-        coll = etree.SubElement(self.ms_ident, "%scollection" % TEI)
+        profile_desc = XPATH_MS_IDENT(self.tree)[0]
+        coll = etree.SubElement(profile_desc, "%scollection" % TEI)
         coll.text = collection
 
     def compile_bibl(self, type_):
@@ -913,7 +905,7 @@ class Tei:
                         pb.set("corresp", self.purl + "/" + pageid[1:])
                     img_url = mets.get_img(struct_link)
                     if img_url:
-                        facsimile = self.facsimile_node
+                        facsimile = XPATH_FACSIMILE(self.tree)[0]
                         # facsimile.set("base", ...common url_prefix...)
                         # todo: DTABf seems to use "graphic" directly, but other dialects wrap them inside a "surface"
                         graphic = etree.SubElement(facsimile, "%sgraphic" % TEI)
