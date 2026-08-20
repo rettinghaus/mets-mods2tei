@@ -13,6 +13,80 @@ from .alto import Alto
 from .util import NS, PX, resource_filename
 
 # FIXME: add more structural mappings from METS-Anwendungsprofil (DFG Strukturdatenset) to TEI-P5 tagset (DTAbf)
+CONTAINER_TYPES = {
+    "multivolume_work",
+    "periodical",
+    "newspaper",
+    "issue_indicator",
+    "year",
+    "month",
+    "day",
+    "series",
+    "work",
+}
+
+DOCUMENT_TYPES = {
+    "monograph",
+    "volume",
+    "issue",
+    "article",
+    "lecture",
+    "dossier",
+    "act",
+    "judgement",
+    "study",
+    "paper",
+    "bachelor_thesis",
+    "diploma_thesis",
+    "magister_thesis",
+    "master_thesis",
+    "doctoral_thesis",
+    "habilitation_thesis",
+    "report",
+    "register",
+    "file",
+    "fragment",
+    "manuscript",
+    "poster",
+    "map",
+    "sheet",
+}
+
+SECTION_TYPES = {
+    "title_page",
+    "preface",
+    "dedication",
+    "engraved_titlepage",
+    "chapter",
+    "section",
+    "part",
+    "article",
+    "contents",
+    "corrigenda",
+    "index",
+    "imprint",
+    "appendix",
+    "additional",
+    "attached_work",
+    "advertising",
+    "epilogue",
+    "postface",
+    "letter",
+    "verse",
+    "illustration",
+    "figure",
+    "map",
+    "table",
+    "binding",
+    "cover",
+    "cover_front",
+    "cover_back",
+    "spine",
+    "paste_down",
+    "endsheet",
+    "colour_checker",
+}
+
 # ruff: disable[F601]
 DIV_METS2TEI = {
     "article": "chapter",
@@ -215,7 +289,7 @@ class Tei:
         div = mets.get_div_structure()
         if div is not None:
             self.logger.debug("Found logical structMap for %s", div.get_TYPE())
-            self.add_div_structure(div)
+            self.add_div_structure(div, mets=mets)
         if not len(self.tree.xpath('//tei:text/tei:body/tei:div', namespaces=NS)) and any(mets.alto_map):
             self.logger.warning("Found no logical structMap divs, falling back to physical")
             pages = mets.alto_map.keys()
@@ -993,7 +1067,7 @@ class Tei:
                             node.insert(0, par)
             first = False
 
-    def add_div_structure(self, div):
+    def add_div_structure(self, div, mets=None):
         """
         Add logical div elements to the text font/body/back according to the given div hierarchy.
         """
@@ -1003,17 +1077,40 @@ class Tei:
         body = self.tree.xpath('//tei:body', namespaces=NS)[0]
         back = self.tree.xpath('//tei:back', namespaces=NS)[0]
 
-        # descend to the deepest AMD
-        while div.get_ADMID() is None:
-            self.logger.debug("Found logical outer div type %s: %s", div.get_TYPE(), div.get_ID())
-            div = div.get_div()[0]
-        # we want to dive into multivolume_work, periodical, newspaper, year, month...
-        # we are looking for issue, volume, monograph, lecture, dossier, act, judgement, study, paper, *_thesis, report, register, file, fragment, manuscript...
-        start_div = div
-        while start_div.get_div() and start_div.get_div()[0].get_ADMID() is not None:
-            self.logger.debug("Found logical inner div type %s: %s", start_div.get_TYPE(), start_div.get_ID())
-            div = start_div
-            start_div = start_div.get_div()[0]
+        # descend to the document-level div (e.g., monograph, volume, issue)
+        # bypassing outer container divs (e.g., multivolume_work, periodical, year, month)
+        while div.get_div():
+            div_type = (div.get_TYPE() or "").lower()
+            child_divs = div.get_div()
+            child_types = [(c.get_TYPE() or "").lower() for c in child_divs]
+
+            is_container = False
+            if div_type in CONTAINER_TYPES:
+                is_container = True
+            elif div_type not in DOCUMENT_TYPES:
+                # If div is not explicitly a document type, check if its children look like document or container units
+                if any(ct in DOCUMENT_TYPES or ct in CONTAINER_TYPES for ct in child_types):
+                    is_container = True
+                elif not any(ct in SECTION_TYPES for ct in child_types):
+                    # Check if children have metadata or struct_links while parent does not
+                    if div.get_ADMID() is None and div.get_DMDID() is None:
+                        parent_has_links = mets and bool(mets.get_struct_links(div.get_ID()))
+                        if not parent_has_links:
+                            if any(c.get_ADMID() or c.get_DMDID() or (mets and mets.get_struct_links(c.get_ID())) for c in child_divs):
+                                is_container = True
+
+            if is_container:
+                self.logger.debug("Found logical outer container div type %s: %s", div.get_TYPE(), div.get_ID())
+                # Find the child div that is a document or container, or default to first child
+                target_child = child_divs[0]
+                for c in child_divs:
+                    ct = (c.get_TYPE() or "").lower()
+                    if ct in DOCUMENT_TYPES or ct in CONTAINER_TYPES:
+                        target_child = c
+                        break
+                div = target_child
+            else:
+                break
 
         # start search
         has_frontmatter = (

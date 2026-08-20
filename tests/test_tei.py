@@ -142,6 +142,24 @@ def test_reading_remote_url(tmpdir, datadir, monkeypatch):
     # check lb/@n refs
     assert len(tei.tree.xpath('/tei:TEI/tei:text/tei:body//tei:div//tei:p//tei:lb/@n', namespaces=NS)) > 800
 
+def test_div_structure_without_admid():
+    """
+    Test div structure handling when ADMID is None on divs (e.g., ENMAP METS profile).
+    """
+    from mets_mods2tei.api.mets_generateds import divType
+    root_div = divType(ID="LOG_ROOT", TYPE="multivolume_work")
+    vol_div = divType(ID="LOG_VOL1", TYPE="volume")
+    chap_div = divType(ID="LOG_CHAP1", TYPE="chapter", LABEL="Kapitel 1")
+    root_div.add_div(vol_div)
+    vol_div.add_div(chap_div)
+
+    tei = Tei()
+    tei.add_div_structure(root_div)
+
+    chap_nodes = tei.tree.xpath('//tei:text/tei:body//tei:div[@id="LOG_CHAP1"]', namespaces=NS)
+    assert len(chap_nodes) == 1
+    assert chap_nodes[0].get("rend") == "Kapitel 1"
+
 def test_string_dumping():
     tei = Tei()
     assert tei.tostring().startswith(b"<")
