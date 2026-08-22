@@ -41,7 +41,7 @@ check:
 
 # Run all unit tests
 test: check
-	$(PYTHON) -m pytest --junitxml=junit.xml -o junit_family=legacy --continue-on-collection-errors $(TESTDIR)
+	$(PYTHON) -m pytest --cov=. --cov-report=xml
 
 # Run coverage tests
 coverage:
