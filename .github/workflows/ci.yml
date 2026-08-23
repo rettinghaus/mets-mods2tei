@@ -45,12 +45,14 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
         
-      - name: Upload coverage artifact
+      - name: Upload coverage to GitHub
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-code-coverage@v1
         with:
-          name: coverage-python-${{ matrix.python-version }}
-          path: coverage.xml
+          file: coverage.xml
+          language: Python
+          label: code-coverage/pytest
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     name: Deploy to PyPI
