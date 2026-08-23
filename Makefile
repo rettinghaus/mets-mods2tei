@@ -41,7 +41,7 @@ check:
 
 # Run all unit tests
 test: check
-	$(PYTHON) -m pytest -p pytest_cov --cov=mets_mods2tei --cov-branch --cov-report=xml
+	$(PYTHON) -m pytest --cov=mets_mods2tei --cov-branch --cov-report=xml:coverage.xml
 
 # Run coverage tests
 coverage:

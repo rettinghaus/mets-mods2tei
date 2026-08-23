@@ -1,6 +1,6 @@
-pytest >= 8.0.0
-pytest-cov >= 4.0.0
-pytest-order >= 1.0.0
-pytest-subtests
-coverage >= 7.0.0
-ruff
+pytest>=8.0.0
+pytest-cov>=4.0.0
+pytest-order>=1.0.0
+pytest-subtests>=0.15.0
+coverage>=7.0.0
+ruff>=0.1.0
