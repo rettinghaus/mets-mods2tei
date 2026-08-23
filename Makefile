@@ -41,10 +41,10 @@ check:
 
 # Run all unit tests
 test: check
-	$(PYTHON) -m pytest --cov=mets_mods2tei --cov-branch --cov-report=xml:coverage.xml
+	$(PYTHON) -m pytest
 
 # Run coverage tests
-coverage:
-	make test
+coverage: check
+	$(PYTHON) -m pytest --cov=mets_mods2tei --cov-branch --cov-report=xml:coverage.xml
 	$(PYTHON) -m coverage report -m
 	$(PYTHON) -m coverage html
