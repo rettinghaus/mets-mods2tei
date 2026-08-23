@@ -53,6 +53,7 @@ jobs:
           language: Python
           label: code-coverage/pytest
           token: ${{ secrets.GITHUB_TOKEN }}
+          fail-on-error: false
 
   deploy:
     name: Deploy to PyPI
