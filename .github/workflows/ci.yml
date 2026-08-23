@@ -36,26 +36,21 @@ jobs:
       - name: Install project
         run: make install
 
-      - name: Run tests
-        run: make test
-
       - name: Run coverage
         run: make coverage
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          report_type: test_results
+          files: ./coverage.xml
         
-      - name: Upload coverage to GitHub
+      - name: Upload coverage artifact
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/upload-code-coverage@v1
+        uses: actions/upload-artifact@v4
         with:
-          file: coverage.xml
-          language: Python
-          label: code-coverage/pytest
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: coverage-python-${{ matrix.python-version }}
+          path: coverage.xml
 
   deploy:
     name: Deploy to PyPI

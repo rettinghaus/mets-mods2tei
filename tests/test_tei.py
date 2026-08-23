@@ -580,25 +580,26 @@ def test_tei_scripts_empty_and_childnode_ocr_and_orderlabel():
     assert pb.get("n") == "S. 1"
 
 def test_tei_final_branches_coverage():
-    # 1. fpath starting with '//' or '/'
-    mets_double_slash = Mets()
-    mets_double_slash.wd = "/tmp"
-    mets_double_slash.alto_map = {"P1": "file://relative/path.xml"}
-    mets_double_slash.struct_links = {"DIV1": ["P1"]}
-    mets_double_slash.page_map = {"P1": None}
+    # 1. fpath starting with '///' and starting with '/' (e.g. file:////abs/path.xml)
+    mets_triple_slash = Mets()
+    mets_triple_slash.wd = "/tmp"
+    mets_triple_slash.alto_map = {"P1": "file:////abs/path.xml"}
+    mets_triple_slash.struct_links = {"DIV1": ["P1"]}
+    mets_triple_slash.page_map = {"P1": None}
 
     tei_ds = Tei()
     from lxml import etree
     body = tei_ds.tree.xpath('//tei:body', namespaces=NS)[0]
     node = etree.SubElement(body, f"{{{NS['tei']}}}div")
     node.set("id", "DIV1")
-    tei_ds.add_ocr_text(mets_double_slash)
+    tei_ds.add_ocr_text(mets_triple_slash)
 
-    # 2. orderlabel empty / None
+    # 2. orderlabel empty / None (order_map empty string or None)
     mets_no_orderlabel = Mets()
     mets_no_orderlabel.alto_map = {"P1": "file:dummy_no_label.xml"}
     mets_no_orderlabel.struct_links = {"DIV1": ["P1"]}
     mets_no_orderlabel.page_map = {"P1": None}
+    mets_no_orderlabel.order_map = {"P1": ""}
 
     import io, builtins
     xml_alto = b'<?xml version="1.0" encoding="UTF-8"?><alto xmlns="http://www.loc.gov/standards/alto/ns-v4#"><Layout><Page ID="P1"><PrintSpace><TextBlock ID="TB1"><TextLine ID="TL1"><String CONTENT="Text"/></TextLine></TextBlock></PrintSpace></Page></Layout></alto>'
@@ -619,7 +620,94 @@ def test_tei_final_branches_coverage():
     monkeypatch.undo()
 
     pb = tei_nl.tree.xpath('//tei:pb', namespaces=NS)[0]
-    assert pb.get("n") == "0"
+    assert pb.get("n") is None
+
+def test_tei_specific_branch_coverage():
+    tei = Tei()
+
+    # 1. add_author with typ neither personal nor corporate
+    tei.add_author({'name': 'UnknownEntity'}, "other")
+
+    # 2. add_place with key neither text nor code (e.g. "other")
+    tei.add_place({"other": "some place"})
+
+    # 3. add_ocr_text argument split where par_post is empty (header matched at end of paragraph)
+    xml_alto_end_head = b'''<?xml version="1.0" encoding="UTF-8"?>
+    <alto xmlns="http://www.loc.gov/standards/alto/ns-v4#">
+      <Layout>
+        <Page ID="P1">
+          <PrintSpace>
+            <TextBlock ID="TB1">
+              <TextLine ID="TL1"><String CONTENT="Pre Line 1"/></TextLine>
+              <TextLine ID="TL2"><String CONTENT="Header At End"/></TextLine>
+            </TextBlock>
+          </PrintSpace>
+        </Page>
+      </Layout>
+    </alto>'''
+    mets_end_head = Mets()
+    mets_end_head.alto_map = {"P1": "file:dummy_end_head.xml"}
+    mets_end_head.struct_links = {"DIV1": ["P1"]}
+    mets_end_head.page_map = {"P1": None}
+
+    import io, builtins
+    original_open = open
+    def mock_open(path, mode='r', *args, **kwargs):
+        if 'dummy_end_head.xml' in str(path):
+            return io.BytesIO(xml_alto_end_head)
+        return original_open(path, mode, *args, **kwargs)
+
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(builtins, "open", mock_open)
+
+    from lxml import etree
+    tei_eh = Tei()
+    body_eh = tei_eh.tree.xpath('//tei:body', namespaces=NS)[0]
+    node_eh = etree.SubElement(body_eh, f"{{{NS['tei']}}}div")
+    node_eh.set("id", "DIV1")
+    node_eh.set("rend", "Header At End")
+    tei_eh.add_ocr_text(mets_end_head)
+    monkeypatch.undo()
+
+    heads = tei_eh.tree.xpath('//tei:head', namespaces=NS)
+    assert len(heads) == 1
+
+    # 4. add_ocr_text argument split where par_pre is empty (header matched at start of paragraph, followed by post line)
+    xml_alto_start_head = b'''<?xml version="1.0" encoding="UTF-8"?>
+    <alto xmlns="http://www.loc.gov/standards/alto/ns-v4#">
+      <Layout>
+        <Page ID="P1">
+          <PrintSpace>
+            <TextBlock ID="TB1">
+              <TextLine ID="TL1"><String CONTENT="Header At Start"/></TextLine>
+              <TextLine ID="TL2"><String CONTENT="Post Line 1"/></TextLine>
+            </TextBlock>
+          </PrintSpace>
+        </Page>
+      </Layout>
+    </alto>'''
+    mets_start_head = Mets()
+    mets_start_head.alto_map = {"P1": "file:dummy_start_head.xml"}
+    mets_start_head.struct_links = {"DIV1": ["P1"]}
+    mets_start_head.page_map = {"P1": None}
+
+    def mock_open_sh(path, mode='r', *args, **kwargs):
+        if 'dummy_start_head.xml' in str(path):
+            return io.BytesIO(xml_alto_start_head)
+        return original_open(path, mode, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "open", mock_open_sh)
+
+    tei_sh = Tei()
+    body_sh = tei_sh.tree.xpath('//tei:body', namespaces=NS)[0]
+    node_sh = etree.SubElement(body_sh, f"{{{NS['tei']}}}div")
+    node_sh.set("id", "DIV1")
+    node_sh.set("rend", "Header At Start")
+    tei_sh.add_ocr_text(mets_start_head)
+    monkeypatch.undo()
+
+    heads_sh = tei_sh.tree.xpath('//tei:head', namespaces=NS)
+    assert len(heads_sh) == 1
 
 def test_tei_more_branch_coverage():
     # 1. fpath starting with '/' in file:

@@ -119,7 +119,7 @@ def download_cli(ctx, file_grp, page_id, path_names, url_prefix, reference):
                 f._el.replace(oldref, newref)
             elif reference == 'insert-local':
                 f._el.insert(0, newref)
-            elif reference == 'append-local':
+            else:
                 oldref.addnext(newref)
     if reference != 'no-change':
         workspace.save_mets()

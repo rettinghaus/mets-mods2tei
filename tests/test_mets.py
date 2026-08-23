@@ -173,8 +173,12 @@ def test_mets_read_variants(datadir):
     """
     Test Mets.read with string path, existing vs non-existing file.
     """
-    filepath = str(datadir.join('test_mets.xml'))
-    m1 = Mets.read(filepath)
+    filepath_str = str(datadir.join('test_mets.xml'))
+    m0 = Mets.read(filepath_str)
+    assert m0.mets is not None
+
+    filepath_obj = Path(filepath_str)
+    m1 = Mets.read(filepath_obj)
     assert m1.mets is not None
 
     m2 = Mets.read("non_existent_mets_file.xml")
@@ -445,18 +449,29 @@ def test_mets_no_structmap():
     from io import BytesIO
     xml_content = b'''<?xml version="1.0" encoding="UTF-8"?>
 <mets:mets xmlns:mets="http://www.loc.gov/METS/" xmlns:mods="http://www.loc.gov/mods/v3">
-  <mets:dmdSec ID="DMD1">
-    <mets:mdWrap MDTYPE="MODS">
-      <mets:xmlData>
-        <mods:mods/>
-      </mets:xmlData>
-    </mets:mdWrap>
-  </mets:dmdSec>
 </mets:mets>'''
     mets = Mets()
     mets.fromfile(BytesIO(xml_content))
     assert mets.get_page_structure() is None
     assert mets.get_div_structure() is None
+
+def test_mets_wrapper_element():
+    from io import BytesIO
+    xml_content = b'''<?xml version="1.0" encoding="UTF-8"?>
+<wrapper>
+  <mets:mets xmlns:mets="http://www.loc.gov/METS/" xmlns:mods="http://www.loc.gov/mods/v3">
+    <mets:dmdSec ID="DMD1">
+      <mets:mdWrap MDTYPE="MODS">
+        <mets:xmlData>
+          <mods:mods/>
+        </mets:xmlData>
+      </mets:mdWrap>
+    </mets:dmdSec>
+  </mets:mets>
+</wrapper>'''
+    mets = Mets()
+    mets.fromfile(BytesIO(xml_content))
+    assert mets.mets is not None
 
 def test_mets_title_info_no_type_and_physical_desc_no_origin():
     from io import BytesIO
@@ -567,6 +582,7 @@ def test_mets_slub_license_and_origin_info_date_start():
           <mods:originInfo>
             <mods:dateIssued point="start">1850</mods:dateIssued>
           </mods:originInfo>
+          <mods:accessCondition type="other">Other condition</mods:accessCondition>
           <mods:accessCondition type="use and reproduction" href="http://example.org/license">CC-BY 4.0</mods:accessCondition>
         </mods:mods>
       </mets:xmlData>

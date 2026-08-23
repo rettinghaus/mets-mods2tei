@@ -41,12 +41,12 @@ check:
 
 # Run all unit tests
 test: check
-	$(PYTHON) -m pytest --cov=. --cov-report=xml
+	$(PYTHON) -m coverage run --branch -m pytest
 
 # Run coverage tests
 coverage:
 	coverage erase
-	make test PYTHON="coverage run"
-	coverage report
+	make test
+	coverage report -m
 	coverage html
 	coverage xml
