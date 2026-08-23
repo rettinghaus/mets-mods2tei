@@ -16,9 +16,6 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      code-quality: write
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
@@ -47,17 +44,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
-        
-      - name: Upload coverage to GitHub
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/upload-code-coverage@v1
-        continue-on-error: true
-        with:
-          file: coverage.xml
-          language: Python
-          label: code-coverage/pytest
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fail-on-error: false
 
   deploy:
     name: Deploy to PyPI
