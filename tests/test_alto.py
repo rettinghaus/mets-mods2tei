@@ -156,7 +156,7 @@ def test_best_insert_index_no_exact_match():
     """
     alto = Alto()
     alto.text = "abcdefghij"
-    idx, _ = alto.get_best_insert_index("xyz")
+    idx, _length = alto.get_best_insert_index("xyz")
     assert idx != -1
 
 def test_collect_text_nodes():
@@ -219,5 +219,5 @@ def test_collect_text_nodes():
         0: lines_b1_2[0],
         1: lines_b2_2[0],
     }
-    pars2, _ = alto2.collect_text_nodes(0, 2)
+    pars2, _lines2 = alto2.collect_text_nodes(0, 2)
     assert len(pars2) == 1
