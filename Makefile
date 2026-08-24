@@ -41,12 +41,9 @@ check:
 
 # Run all unit tests
 test: check
-	$(PYTHON) -m pytest --junitxml=junit.xml -o junit_family=legacy --continue-on-collection-errors $(TESTDIR)
+	$(PYTHON) -m pytest
 
 # Run coverage tests
-coverage:
-	coverage erase
-	make test PYTHON="coverage run"
-	coverage report
-	coverage html
-	coverage xml
+coverage: check
+	$(PYTHON) -m pytest --cov=mets_mods2tei --cov-branch --cov-report=xml:coverage.xml
+	$(PYTHON) -m coverage report -m
