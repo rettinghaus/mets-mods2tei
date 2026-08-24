@@ -16,7 +16,7 @@ def workspace_dir(tmp_path):
     file2 = img_dir / "page2.png"
     file2.write_bytes(b"dummy png content 2")
 
-    mets_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+    mets_xml = """<?xml version="1.0" encoding="UTF-8"?>
 <mets:mets xmlns:mets="http://www.loc.gov/METS/" xmlns:xlink="http://www.w3.org/1999/xlink">
   <mets:metsHdr CREATEDATE="2020-01-01T00:00:00Z">
     <mets:agent TYPE="OTHER" OTHERTYPE="SOFTWARE" ROLE="OTHER" OTHERROLE="publication">

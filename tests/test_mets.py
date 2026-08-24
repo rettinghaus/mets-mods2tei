@@ -326,7 +326,7 @@ def test_mets_more_div_types():
   <mets:structMap TYPE="PHYSICAL">
     <mets:div TYPE="PHYSICAL"/>
   </mets:structMap>
-</mets:mets>'''.encode('utf-8')
+</mets:mets>'''.encode()
 
         mets = Mets()
         mets.fromfile(BytesIO(xml_content))
