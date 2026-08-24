@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
-
 from pathlib import Path
 
 import pytest
 
 from mets_mods2tei import Mets
+
 
 @pytest.fixture
 def datadir(tmpdir, request):

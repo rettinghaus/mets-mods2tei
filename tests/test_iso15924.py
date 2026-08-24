@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
-
 from mets_mods2tei import Iso15924
+
 
 def test_constructor():
     """

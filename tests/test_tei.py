@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
-
 from pathlib import Path
 
 import pytest
 
-from mets_mods2tei import Tei
-from mets_mods2tei import Mets
+from mets_mods2tei import Mets, Tei
 
 NS = {
     'tei': 'http://www.tei-c.org/ns/1.0'
@@ -87,6 +84,7 @@ def test_reading_remote_url(tmpdir, datadir, monkeypatch):
     Test reading from a remote METS link.
     """
     from urllib.request import urlopen
+
     import requests
 
     URL = ("https://digital.slub-dresden.de/oai/?verb=GetRecord&metadataPrefix=mets"
@@ -447,7 +445,8 @@ def test_tei_ocr_unknown_phys_link_and_order():
     mets.struct_links = {"DIV1": ["UNKNOWN_PHYS"]}
 
     # Mock open
-    import io, builtins
+    import builtins
+    import io
     xml_alto = b'<?xml version="1.0" encoding="UTF-8"?><alto xmlns="http://www.loc.gov/standards/alto/ns-v4#"><Layout><Page ID="P1"><PrintSpace><TextBlock ID="TB1"><TextLine><String CONTENT="Text"/></TextLine></TextBlock></PrintSpace></Page></Layout></alto>'
     original_open = open
     def mock_open(path, mode='r', *args, **kwargs):
@@ -554,7 +553,8 @@ def test_tei_scripts_empty_and_childnode_ocr_and_orderlabel():
     mets_child.page_map = {"PHYS_1": None}
     mets_child.orderlabel_map = {"PHYS_1": "S. 1"}
 
-    import io, builtins
+    import builtins
+    import io
     xml_alto = b'<?xml version="1.0" encoding="UTF-8"?><alto xmlns="http://www.loc.gov/standards/alto/ns-v4#"><Layout><Page ID="P1"><PrintSpace><TextBlock ID="TB1"><TextLine ID="TL1"><String CONTENT="Child line"/></TextLine></TextBlock></PrintSpace></Page></Layout></alto>'
     original_open = open
     def mock_open(path, mode='r', *args, **kwargs):
@@ -600,7 +600,8 @@ def test_tei_final_branches_coverage():
     mets_no_orderlabel.struct_links = {"DIV1": ["P1"]}
     mets_no_orderlabel.page_map = {"P1": None}
 
-    import io, builtins
+    import builtins
+    import io
     xml_alto = b'<?xml version="1.0" encoding="UTF-8"?><alto xmlns="http://www.loc.gov/standards/alto/ns-v4#"><Layout><Page ID="P1"><PrintSpace><TextBlock ID="TB1"><TextLine ID="TL1"><String CONTENT="Text"/></TextLine></TextBlock></PrintSpace></Page></Layout></alto>'
     original_open = open
     def mock_open(path, mode='r', *args, **kwargs):
@@ -642,7 +643,8 @@ def test_tei_more_branch_coverage():
     mets_img_nomime.struct_links = {"DIV1": ["P1"]}
     mets_img_nomime.page_map = {"P1": None}
 
-    import io, builtins
+    import builtins
+    import io
     xml_alto = b'<?xml version="1.0" encoding="UTF-8"?><alto xmlns="http://www.loc.gov/standards/alto/ns-v4#"><Layout><Page ID="P1"><PrintSpace><TextBlock ID="TB1"><TextLine ID="TL1"><String CONTENT="Line1"/></TextLine></TextBlock></PrintSpace></Page></Layout></alto>'
     original_open = open
     def mock_open(path, mode='r', *args, **kwargs):
@@ -766,7 +768,8 @@ def test_tei_additional_branches_coverage():
     mets_img.struct_links = {"DIV1": ["P1"]}
     mets_img.page_map = {"P1": None}
 
-    import io, builtins
+    import builtins
+    import io
     xml_alto = b'<?xml version="1.0" encoding="UTF-8"?><alto xmlns="http://www.loc.gov/standards/alto/ns-v4#"><Layout><Page ID="P1"><PrintSpace><TextBlock ID="TB1"><TextLine ID="TL1"><String CONTENT="Line1"/></TextLine></TextBlock></PrintSpace></Page></Layout></alto>'
     original_open = open
     def mock_open(path, mode='r', *args, **kwargs):
@@ -931,7 +934,8 @@ def test_tei_no_front_back_and_bibl_compile_types():
     mets.alto_map = {"P1": "file:dummy.xml"}
 
     # Mock open
-    import io, builtins
+    import builtins
+    import io
     xml_alto = b'<?xml version="1.0" encoding="UTF-8"?><alto xmlns="http://www.loc.gov/standards/alto/ns-v4#"><Layout><Page ID="P1"><PrintSpace><TextBlock ID="TB1"><TextLine><String CONTENT="Body line"/></TextLine></TextBlock></PrintSpace></Page></Layout></alto>'
     original_open = open
     def mock_open(path, mode='r', *args, **kwargs):
@@ -963,6 +967,7 @@ def test_tei_ocr_line_refs_without_id_and_head_split_branches():
     and head/argument splitting when status transitions.
     """
     from lxml import etree
+
     from mets_mods2tei.api.alto import Alto
 
     xml_alto = b'''<?xml version="1.0" encoding="UTF-8"?>
@@ -994,7 +999,8 @@ def test_tei_ocr_line_refs_without_id_and_head_split_branches():
     node.set("id", "DIV_1")
     node.set("rend", "Header Line")
 
-    import io, builtins
+    import builtins
+    import io
     original_open = open
     def mock_open(path, mode='r', *args, **kwargs):
         if 'dummy_noid.xml' in str(path):
@@ -1014,6 +1020,7 @@ def test_tei_add_ocr_text_head_and_argument_splitting():
     Test __add_ocr_to_node when a heading matches OCR lines and splits paragraph into head/argument.
     """
     from lxml import etree
+
     from mets_mods2tei.api.alto import Alto
 
     xml_alto = b'''<?xml version="1.0" encoding="UTF-8"?>
