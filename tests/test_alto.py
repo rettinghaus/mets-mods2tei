@@ -58,7 +58,7 @@ def test_text_line_extraction(datadir):
     """
     with open(datadir.join('test_alto.xml'), 'rb') as f:
         alto = Alto.read(f)
-    text_block = list(alto.get_text_blocks())[0]
+    text_block = next(iter(alto.get_text_blocks()))
     assert(len(list(alto.get_lines_in_text_block(text_block))) == 26)
 
 def test_text_line_text_extraction(datadir):
@@ -67,8 +67,8 @@ def test_text_line_text_extraction(datadir):
     """
     with open(datadir.join('test_alto.xml'), 'rb') as f:
         alto = Alto.read(f)
-    text_block = list(alto.get_text_blocks())[0]
-    text_line = list(alto.get_lines_in_text_block(text_block))[0]
+    text_block = next(iter(alto.get_text_blocks()))
+    text_line = next(iter(alto.get_lines_in_text_block(text_block)))
     assert(alto.get_text_in_line(text_line) == "Vorbericht.")
 
 def test_index_assingment(datadir):
@@ -126,8 +126,8 @@ def test_hyphenation_in_line():
       </Layout>
     </alto>'''
     alto = Alto.frombytes(xml)
-    tb = alto.get_text_blocks()[0]
-    line = alto.get_lines_in_text_block(tb)[0]
+    tb = next(iter(alto.get_text_blocks()))
+    line = next(iter(alto.get_lines_in_text_block(tb)))
     assert alto.get_text_in_line(line) == "Vorbe-richt"
 
 def test_best_insert_index_edge_cases():
@@ -156,7 +156,7 @@ def test_best_insert_index_no_exact_match():
     """
     alto = Alto()
     alto.text = "abcdefghij"
-    idx, length = alto.get_best_insert_index("xyz")
+    idx, _ = alto.get_best_insert_index("xyz")
     assert idx != -1
 
 def test_collect_text_nodes():
@@ -219,5 +219,5 @@ def test_collect_text_nodes():
         0: lines_b1_2[0],
         1: lines_b2_2[0],
     }
-    pars2, lines2 = alto2.collect_text_nodes(0, 2)
+    pars2, _ = alto2.collect_text_nodes(0, 2)
     assert len(pars2) == 1

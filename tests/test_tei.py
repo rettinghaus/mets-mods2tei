@@ -494,15 +494,15 @@ def test_tei_remaining_uncovered_nodes():
     # Note: xpath('/tei:notesStmt') starts with '/' so it checks root element rather than children unless relative
     # add_note when root has notesStmt
     root = tei.tree.getroot()
-    notes_stmt = etree.SubElement(root, f"{{{NS['tei']}}}notesStmt")
+    etree.SubElement(root, f"{{{NS['tei']}}}notesStmt")
     tei.add_note("Root note")
 
     # add_classcode when root has textClass
-    text_class = etree.SubElement(root, f"{{{NS['tei']}}}textClass")
+    etree.SubElement(root, f"{{{NS['tei']}}}textClass")
     tei.add_classcode("ddc", "300")
 
     # add_extent when root has supportDesc
-    sup_desc = etree.SubElement(root, f"{{{NS['tei']}}}supportDesc")
+    etree.SubElement(root, f"{{{NS['tei']}}}supportDesc")
     tei.add_extent("300 p.")
 
     # 3. add_place with code key
@@ -984,7 +984,7 @@ def test_tei_ocr_line_refs_without_id_and_head_split_branches():
         </Page>
       </Layout>
     </alto>'''
-    alto = Alto.frombytes(xml_alto)
+    Alto.frombytes(xml_alto)
 
     mets = Mets()
     mets.alto_map = {"PHYS_0001": "file:dummy_noid.xml"}
@@ -1037,7 +1037,7 @@ def test_tei_add_ocr_text_head_and_argument_splitting():
         </Page>
       </Layout>
     </alto>'''
-    alto = Alto.frombytes(xml_alto)
+    Alto.frombytes(xml_alto)
 
     mets = Mets()
     mets.alto_map = {"PHYS_0001": "file:dummy_alto.xml"}

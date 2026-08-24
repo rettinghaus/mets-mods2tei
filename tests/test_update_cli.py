@@ -135,7 +135,7 @@ def test_download_cli(workspace_dir, monkeypatch):
 
     # 3. Download with reference other than replace/insert/append/no-change (e.g. invalid/unknown string passed directly to download_cli)
     from mets_mods2tei.scripts.update import download_cli
-    res_unknown = runner.invoke(
+    runner.invoke(
         download_cli,
         ["-p", "GRP/ID.SUF", "-r", "unknown_ref"],
         obj=runner.invoke(cli, ["-d", str(workspace_dir)]).subcontext if False else None,
